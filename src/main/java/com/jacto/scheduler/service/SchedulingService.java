@@ -10,7 +10,6 @@ import com.jacto.scheduler.repository.EquipmentRepository;
 import com.jacto.scheduler.repository.SchedulingRepository;
 import com.jacto.scheduler.repository.SparePartRepository;
 import com.jacto.scheduler.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -23,23 +22,27 @@ import java.util.stream.Collectors;
 @Service
 public class SchedulingService {
 
-    @Autowired
-    private SchedulingRepository schedulingRepository;
+    private final SchedulingRepository schedulingRepository;
+    private final EquipmentRepository equipmentRepository;
+    private final SparePartRepository sparePartRepository;
+    private final UserRepository userRepository;
+    private final GeocodingService geocodingService;
+    private final NotificationService notificationService;
 
-    @Autowired
-    private EquipmentRepository equipmentRepository;
-
-    @Autowired
-    private SparePartRepository sparePartRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private GeocodingService geocodingService;
-
-    @Autowired
-    private NotificationService notificationService;
+    public SchedulingService(
+            SchedulingRepository schedulingRepository,
+            EquipmentRepository equipmentRepository,
+            SparePartRepository sparePartRepository,
+            UserRepository userRepository,
+            GeocodingService geocodingService,
+            NotificationService notificationService) {
+        this.schedulingRepository = schedulingRepository;
+        this.equipmentRepository = equipmentRepository;
+        this.sparePartRepository = sparePartRepository;
+        this.userRepository = userRepository;
+        this.geocodingService = geocodingService;
+        this.notificationService = notificationService;
+    }
 
     public List<SchedulingResponse> getAllSchedulingsForCurrentUser() {
         User currentUser = getCurrentUser();

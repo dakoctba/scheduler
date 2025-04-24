@@ -6,7 +6,6 @@ import com.jacto.scheduler.service.MailService;
 import com.jacto.scheduler.service.SchedulingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,13 +16,14 @@ import java.util.stream.Collectors;
 @Component
 public class SchedulingNotificationConsumer {
 
-    @Autowired
-    private SchedulingService schedulingService;
-
-    @Autowired
-    private MailService mailService;
-
+    private final SchedulingService schedulingService;
+    private final MailService mailService;
     private static final Logger logger = LoggerFactory.getLogger(SchedulingNotificationConsumer.class);
+
+    public SchedulingNotificationConsumer(SchedulingService schedulingService, MailService mailService) {
+        this.schedulingService = schedulingService;
+        this.mailService = mailService;
+    }
 
     @KafkaListener(topics = KafkaConfig.SCHEDULING_CREATED_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
     @Transactional
@@ -123,11 +123,11 @@ public class SchedulingNotificationConsumer {
     private String formatTechnicianNotificationEmail(SchedulingResponse scheduling) {
         String emailTemplate = """
             Assunto: Novo Agendamento Atribuído - Visita Técnica Jacto
-        
+
             Olá %s,
-        
+
             Um novo agendamento foi atribuído a você.
-        
+
             Detalhes do Agendamento:
             - Número do Agendamento: #%d
             - Cliente: %s
@@ -136,11 +136,11 @@ public class SchedulingNotificationConsumer {
             - Endereço: %s
             - Descrição do Serviço: %s
             - Prioridade: %s
-        
+
             %s
-        
+
             Por favor, prepare-se para essa visita e entre em contato com a equipe de suporte caso haja qualquer dúvida.
-        
+
             Atenciosamente,
             Equipe de Atendimento Técnico
             Jacto
