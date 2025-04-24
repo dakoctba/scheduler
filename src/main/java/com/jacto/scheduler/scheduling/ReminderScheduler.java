@@ -6,7 +6,6 @@ import com.jacto.scheduler.repository.SchedulingRepository;
 import com.jacto.scheduler.service.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -18,11 +17,13 @@ public class ReminderScheduler {
 
     private static final Logger logger = LoggerFactory.getLogger(ReminderScheduler.class);
 
-    @Autowired
-    private SchedulingRepository schedulingRepository;
+    private final SchedulingRepository schedulingRepository;
+    private final NotificationService notificationService;
 
-    @Autowired
-    private NotificationService notificationService;
+    public ReminderScheduler(SchedulingRepository schedulingRepository, NotificationService notificationService) {
+        this.schedulingRepository = schedulingRepository;
+        this.notificationService = notificationService;
+    }
 
     // Executa a cada hora para verificar agendamentos próximos
     @Scheduled(cron = "0 0 * * * *")
