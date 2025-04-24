@@ -4,34 +4,104 @@ import com.jacto.scheduler.payload.response.GeoLocationDetails;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.Map;
 
 @Service
 public class GeocodingService {
 
-    @Value("${geocoding.api.key}")
-    private String apiKey;
-
     private final RestTemplate restTemplate;
+    private final String nominatimBaseUrl;
 
-    public GeocodingService(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+    public GeocodingService(
+            @Value("${geocoding.nominatim.base-url:https://nominatim.openstreetmap.org}") String nominatimBaseUrl) {
+        this.restTemplate = new RestTemplate();
+        this.nominatimBaseUrl = nominatimBaseUrl;
     }
 
     public GeoLocationDetails getLocationDetails(Double latitude, Double longitude) {
-        // Implementação da chamada para um serviço de geocodificação reversa
-        // Por exemplo: Google Maps, OpenStreetMap, etc.
+        String url = UriComponentsBuilder.fromHttpUrl(nominatimBaseUrl + "/reverse")
+                .queryParam("format", "json")
+                .queryParam("lat", latitude)
+                .queryParam("lon", longitude)
+                .queryParam("zoom", 18)
+                .queryParam("addressdetails", 1)
+                .build()
+                .toUriString();
 
-        // Exemplo com Google Maps API
-        String url = String.format(
-            "https://maps.googleapis.com/maps/api/geocode/json?latlng=%f,%f&key=%s",
-            latitude, longitude, apiKey
-        );
+        Map<String, Object> response = restTemplate.getForObject(url, Map.class);
 
-        // Fazer a chamada HTTP e transformar a resposta em GeoLocationDetails
-        // Este é apenas um exemplo simplificado
+        if (response == null) {
+            return null;
+        }
 
         GeoLocationDetails details = new GeoLocationDetails();
-        // Preencher com os dados da resposta
+        details.setLatitude(latitude);
+        details.setLongitude(longitude);
+
+        if (response.containsKey("display_name")) {
+            details.setFormattedAddress((String) response.get("display_name"));
+        }
+
+        if (response.containsKey("address")) {
+            Map<String, String> address = (Map<String, String>) response.get("address");
+
+            if (address.containsKey("city")) {
+                details.setCity(address.get("city"));
+            }
+            if (address.containsKey("state")) {
+                details.setState(address.get("state"));
+            }
+            if (address.containsKey("postcode")) {
+                details.setPostalCode(address.get("postcode"));
+            }
+            if (address.containsKey("country")) {
+                details.setCountry(address.get("country"));
+            }
+        }
+
+        return details;
+    }
+
+    public GeoLocationDetails getCoordinatesFromAddress(String address) {
+        String url = UriComponentsBuilder.fromHttpUrl(nominatimBaseUrl + "/search")
+                .queryParam("format", "json")
+                .queryParam("q", address)
+                .queryParam("limit", 1)
+                .queryParam("addressdetails", 1)
+                .build()
+                .toUriString();
+
+        Map[] response = restTemplate.getForObject(url, Map[].class);
+
+        if (response == null || response.length == 0) {
+            return null;
+        }
+
+        Map<String, Object> location = response[0];
+        GeoLocationDetails details = new GeoLocationDetails();
+
+        if (location.containsKey("display_name")) {
+            details.setFormattedAddress((String) location.get("display_name"));
+        }
+
+        if (location.containsKey("address")) {
+            Map<String, String> addressDetails = (Map<String, String>) location.get("address");
+
+            if (addressDetails.containsKey("city")) {
+                details.setCity(addressDetails.get("city"));
+            }
+            if (addressDetails.containsKey("state")) {
+                details.setState(addressDetails.get("state"));
+            }
+            if (addressDetails.containsKey("postcode")) {
+                details.setPostalCode(addressDetails.get("postcode"));
+            }
+            if (addressDetails.containsKey("country")) {
+                details.setCountry(addressDetails.get("country"));
+            }
+        }
 
         return details;
     }

@@ -31,7 +31,17 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-
+  mail:
+    host: localhost
+    port: 1025
+    username: ""
+    password: ""
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
 app:
   jwt:
     secret: 57ffd86ce5c53fccdfc26bd1153e825dcbda4f76d1587692689dd8b1e2b33285
@@ -50,15 +60,7 @@ springdoc:
   default-produces-media-type: application/json
   default-consumes-media-type: application/json
 
-# Configuração para Geocodificação
 geocoding:
-  api:
-    key: SUA_CHAVE_DE_API_AQUI
+  nominatim:
+    base-url: https://nominatim.openstreetmap.org
 
-# Configuração RabbitMQ
-# spring:
-#   rabbitmq:
-#     host: localhost
-#     port: 5672
-#     username: guest
-#     password: guest

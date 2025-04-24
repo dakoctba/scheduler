@@ -2,6 +2,8 @@ package com.jacto.scheduler.payload.response;
 
 public class GeoLocationDetails {
 
+    private Double latitude;
+    private Double longitude;
     private String city;
     private String state;
     private String country;
@@ -55,5 +57,13 @@ public class GeoLocationDetails {
 
     public void setDistance(double distance) {
         this.distance = distance;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 }
