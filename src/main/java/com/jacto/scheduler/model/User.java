@@ -1,5 +1,6 @@
 package com.jacto.scheduler.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -25,6 +26,9 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String fullName;
 
+    @Column(nullable = false, unique = true)
+    private String email;
+
     @Enumerated(EnumType.STRING)
     private Role role;
 
@@ -44,6 +48,14 @@ public class User implements UserDetails {
         this.fullName = fullName;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public void setUsername(String username) {
         this.username = username;
     }
@@ -60,6 +72,7 @@ public class User implements UserDetails {
         this.role = role;
     }
 
+    @JsonIgnore
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));

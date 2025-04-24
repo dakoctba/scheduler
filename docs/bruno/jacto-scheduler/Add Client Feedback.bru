@@ -1,0 +1,20 @@
+meta {
+  name: Add Client Feedback
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{host}}/api/scheduling/1/feedback
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{access_token}}
+}
+
+body:json {
+  { "rating": 5, "feedback": "Excelente atendimento, problema resolvido rapidamente." }
+}

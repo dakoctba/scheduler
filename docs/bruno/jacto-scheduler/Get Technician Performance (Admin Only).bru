@@ -1,0 +1,15 @@
+meta {
+  name: Get Technician Performance (Admin Only)
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{host}}/api/scheduling/technician/1/performance
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{access_token}}
+}

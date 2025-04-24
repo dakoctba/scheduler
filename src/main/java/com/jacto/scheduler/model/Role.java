@@ -1,6 +1,6 @@
 package com.jacto.scheduler.model;
 
 public enum Role {
-    USER,
+    TECNICO,
     ADMIN
 }

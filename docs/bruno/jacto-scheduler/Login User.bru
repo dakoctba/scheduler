@@ -1,0 +1,27 @@
+meta {
+  name: Login User
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{host}}/api/auth/signin
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "username": "fernando",
+    "password": "123456"
+  }
+}
+
+script:post-response {
+  bru.deleteVar("access_token");
+  bru.setEnvVar("access_token", res.body.token);
+}
