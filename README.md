@@ -1,87 +1,152 @@
-# Scheduler - Sistema de Agendamento
+# Sistema de Agendamento de Visitas Técnicas
 
-## 📋 Descrição
-Scheduler é um sistema de agendamento desenvolvido com Spring Boot, oferecendo uma API RESTful para gerenciamento de agendamentos e tarefas.
+Sistema desenvolvido para gerenciar agendamentos de visitas técnicas, permitindo o controle de técnicos, clientes, equipamentos e peças de reposição.
 
-## 🚀 Tecnologias Utilizadas
+## Tecnologias Utilizadas
+
 - Java 17
-- Spring Boot 3.4.4
+- Spring Boot 3.2.3
 - Spring Security
 - Spring Data JPA
 - PostgreSQL
+- Kafka
+- Docker
+- Maven
 - JWT para autenticação
 - OpenAPI (Swagger) para documentação
-- Maven para gerenciamento de dependências
 
-## 🛠️ Pré-requisitos
-- Java 17 ou superior
+## Funcionalidades
+
+### Autenticação e Autorização
+- Login com JWT
+- Roles: ADMIN, TECNICO
+- Endpoints protegidos por role
+
+### Agendamentos
+- CRUD completo de agendamentos
+- Associação com técnicos
+- Controle de status (PENDING, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELLED)
+- Prioridades (LOW, MEDIUM, HIGH)
+- Geolocalização (latitude/longitude)
+- Feedback do cliente (rating e comentários)
+- Equipamentos associados
+- Peças de reposição necessárias
+- Email do cliente para notificações
+
+### Técnicos
+- CRUD de técnicos
+- Métricas de desempenho
+- Histórico de agendamentos
+- Avaliações recebidas
+
+### Notificações
+- Sistema de notificações via Kafka
+- Notificações de criação de agendamento
+- Notificações de atualização de status
+- Notificações de cancelamento
+- Lembretes automáticos de agendamentos
+
+### Emails
+- Envio de emails de confirmação
+- Notificações de atualização de status
+- Lembretes de agendamentos
+- Template personalizado para emails
+
+### Relatórios
+- Métricas de desempenho dos técnicos
+- Tempo médio de conclusão
+- Avaliações recebidas
+- Agendamentos por período
+
+## Configuração do Ambiente
+
+### Pré-requisitos
+- Java 17
 - Maven
-- PostgreSQL
-- Docker (opcional)
+- Docker e Docker Compose
+- MailCatcher (para testes de email)
 
-## 🔧 Configuração do Ambiente
-
-### 1. Clone o repositório
-```bash
-git clone [URL_DO_REPOSITÓRIO]
-cd scheduler
+### Configuração do Banco de Dados
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/scheduler
+spring.datasource.username=postgres
+spring.datasource.password=postgres
 ```
 
-### 2. Configuração do Banco de Dados
-O projeto utiliza PostgreSQL como banco de dados. Você pode configurar as credenciais no arquivo `application.properties` ou usar o Docker Compose fornecido.
+### Configuração do Kafka
+```properties
+spring.kafka.bootstrap-servers=localhost:9092
+spring.kafka.consumer.group-id=scheduler-group
+```
 
-### 3. Usando Docker Compose
+### Configuração do Email (MailCatcher)
+```properties
+spring.mail.host=localhost
+spring.mail.port=1025
+spring.mail.username=
+spring.mail.password=
+spring.mail.properties.mail.smtp.auth=false
+spring.mail.properties.mail.smtp.starttls.enable=false
+```
+
+## Executando o Projeto
+
+1. Clone o repositório
+2. Configure as variáveis de ambiente
+3. Execute o Docker Compose:
 ```bash
 docker-compose up -d
 ```
-
-### 4. Compilando o Projeto
+4. Execute o projeto:
 ```bash
-mvn clean install
+./mvnw spring-boot:run
 ```
 
-### 5. Executando a Aplicação
-```bash
-mvn spring-boot:run
-```
+## Endpoints da API
 
-## 📚 Documentação da API
-A documentação da API está disponível através do Swagger UI. Após iniciar a aplicação, acesse:
+### Autenticação
+- POST /api/auth/login - Login de usuário
+- POST /api/auth/refresh - Renovação do token
+
+### Agendamentos
+- GET /api/schedulings - Lista todos os agendamentos
+- GET /api/schedulings/{id} - Obtém um agendamento específico
+- POST /api/schedulings - Cria um novo agendamento
+- PUT /api/schedulings/{id} - Atualiza um agendamento
+- DELETE /api/schedulings/{id} - Remove um agendamento
+- GET /api/schedulings/upcoming - Lista agendamentos futuros
+- POST /api/schedulings/{id}/feedback - Adiciona feedback do cliente
+
+### Técnicos
+- GET /api/technicians - Lista todos os técnicos
+- GET /api/technicians/{id} - Obtém um técnico específico
+- POST /api/technicians - Cria um novo técnico
+- PUT /api/technicians/{id} - Atualiza um técnico
+- DELETE /api/technicians/{id} - Remove um técnico
+- GET /api/technicians/{id}/performance - Obtém métricas de desempenho
+
+## Documentação da API
+
+A documentação da API está disponível através do Swagger UI:
 ```
 http://localhost:8080/swagger-ui.html
 ```
 
-## 🔐 Segurança
-O sistema utiliza Spring Security com JWT para autenticação. As rotas protegidas requerem um token JWT válido no header da requisição.
+## Testes
 
-## 🧪 Testes
-Para executar os testes:
+O projeto inclui testes unitários e de integração. Para executar os testes:
 ```bash
-mvn test
+./mvnw test
 ```
 
-## 📦 Estrutura do Projeto
-```
-src/
-├── main/
-│   ├── java/
-│   │   └── com/jacto/scheduler/
-│   │       ├── config/
-│   │       ├── controller/
-│   │       ├── model/
-│   │       ├── repository/
-│   │       ├── service/
-│   │       └── SchedulerApplication.java
-│   └── resources/
-│       └── application.properties
-└── test/
-    └── java/
-        └── com/jacto/scheduler/
-```
+## Contribuição
 
-## 🤝 Contribuindo
-1. Faça um Fork do projeto
-2. Crie uma Branch para sua Feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a Branch (`git push origin feature/AmazingFeature`)
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
+3. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
+4. Push para a branch (`git push origin feature/nova-feature`)
 5. Abra um Pull Request
+
+## Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
