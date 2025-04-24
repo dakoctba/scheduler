@@ -12,7 +12,6 @@ import java.util.List;
 
 @Repository
 public interface SchedulingRepository extends JpaRepository<Scheduling, Long> {
-
     List<Scheduling> findByTechnicianOrderByScheduledAtDesc(User technician);
 
     List<Scheduling> findByTechnicianAndStatusOrderByScheduledAtDesc(User technician, SchedulingStatus status);

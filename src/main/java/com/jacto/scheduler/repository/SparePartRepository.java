@@ -9,7 +9,5 @@ import java.util.List;
 
 @Repository
 public interface SparePartRepository extends JpaRepository<SparePart, Long> {
-
     List<SparePart> findByScheduling(Scheduling scheduling);
-
 }
