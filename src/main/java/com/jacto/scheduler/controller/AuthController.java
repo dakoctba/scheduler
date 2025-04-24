@@ -8,6 +8,11 @@ import com.jacto.scheduler.payload.response.JwtResponse;
 import com.jacto.scheduler.payload.response.MessageResponse;
 import com.jacto.scheduler.repository.UserRepository;
 import com.jacto.scheduler.security.jwt.JwtUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +29,7 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Autenticação", description = "Endpoints de autenticação")
 public class AuthController {
     @Autowired
     AuthenticationManager authenticationManager;
@@ -38,6 +44,21 @@ public class AuthController {
     JwtUtils jwtUtils;
 
     @PostMapping("/signin")
+    @Operation(
+        summary = "Autenticar usuário",
+        description = "Autentica um usuário e retorna um token JWT",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Autenticado com sucesso",
+                content = @Content(schema = @Schema(implementation = JwtResponse.class))
+            ),
+            @ApiResponse(
+                responseCode = "401",
+                description = "Credenciais inválidas"
+            )
+        }
+    )
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 
         Authentication authentication = authenticationManager.authenticate(
@@ -59,6 +80,21 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
+    @Operation(
+        summary = "Registrar usuário",
+        description = "Registra um novo usuário no sistema",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Usuário registrado com sucesso",
+                content = @Content(schema = @Schema(implementation = MessageResponse.class))
+            ),
+            @ApiResponse(
+                responseCode = "400",
+                description = "Usuário já existe ou dados inválidos"
+            )
+        }
+    )
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return ResponseEntity
