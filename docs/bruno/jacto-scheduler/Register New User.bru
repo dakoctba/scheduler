@@ -1,0 +1,19 @@
+meta {
+  name: Register New User
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{host}}/api/auth/signup
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  { "username": "newtech", "password": "password123", "fullName": "New Technician", "email": "tech@jacto.com", "role": "TECNICO" }
+}

@@ -25,7 +25,7 @@ public class TestController {
     }
 
     @GetMapping("/user")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('TECNICO') or hasRole('ADMIN')")
     @Operation(
         summary = "Acesso de usuário",
         description = "Endpoint que pode ser acessado apenas por usuários autenticados com role USER ou ADMIN",

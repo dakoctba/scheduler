@@ -76,6 +76,7 @@ public class AuthController {
                                  userDetails.getId(),
                                  userDetails.getUsername(),
                                  userDetails.getFullName(),
+                                 userDetails.getEmail(),
                                  roles));
     }
 
@@ -105,18 +106,19 @@ public class AuthController {
         User user = new User();
         user.setUsername(signUpRequest.getUsername());
         user.setFullName(signUpRequest.getFullName());
+        user.setEmail(signUpRequest.getEmail());
         user.setPassword(encoder.encode(signUpRequest.getPassword()));
 
         String strRole = signUpRequest.getRole();
         Role role;
 
         if (strRole == null) {
-            role = Role.USER;
+            role = Role.TECNICO;
         } else {
             try {
                 role = Role.valueOf(strRole.toUpperCase());
             } catch (IllegalArgumentException e) {
-                role = Role.USER;
+                role = Role.TECNICO;
             }
         }
 

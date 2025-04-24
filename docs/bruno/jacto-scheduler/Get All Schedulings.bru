@@ -1,0 +1,15 @@
+meta {
+  name: Get All Schedulings
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host}}/api/scheduling
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{access_token}}
+}
