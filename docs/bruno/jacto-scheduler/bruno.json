@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "jacto-scheduler",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
