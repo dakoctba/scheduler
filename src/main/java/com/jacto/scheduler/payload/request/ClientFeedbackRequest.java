@@ -9,15 +9,15 @@ public class ClientFeedbackRequest {
     @NotNull
     @Min(1)
     @Max(5)
-    private Integer rating;
+    private Double rating;
 
     private String feedback;
 
-    public Integer getRating() {
+    public Double getRating() {
         return rating;
     }
 
-    public void setRating(Integer rating) {
+    public void setRating(Double rating) {
         this.rating = rating;
     }
 

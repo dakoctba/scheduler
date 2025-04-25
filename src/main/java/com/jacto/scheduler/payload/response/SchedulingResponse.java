@@ -1,9 +1,6 @@
 package com.jacto.scheduler.payload.response;
 
-import com.jacto.scheduler.model.Equipment;
 import com.jacto.scheduler.model.Scheduling;
-import com.jacto.scheduler.model.SparePart;
-import com.jacto.scheduler.model.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,8 +9,7 @@ import java.util.stream.Collectors;
 public class SchedulingResponse {
 
     private Long id;
-    private String technicianUsername;
-    private String technicianFullName;
+
     private String farmName;
     private String clientName;
     private String clientEmail;
@@ -25,18 +21,25 @@ public class SchedulingResponse {
     private String serviceDescription;
     private String status;
     private String priority;
-    private Integer clientRating;
+    private Double clientRating;
     private String clientFeedback;
     private List<EquipmentResponse> equipments;
     private List<SparePartResponse> spareParts;
     private GeoLocationDetails locationDetails;
-    private User technician;
+
+    private String technicianUsername;
+    private String technicianFullName;
+    private String technicianEmail;
+    private Long technicianId;
+
+    // Construtor padrão para deserialização JSON
+    public SchedulingResponse() {
+    }
 
     // Construtor com base na entidade Scheduling
     public SchedulingResponse(Scheduling scheduling) {
         this.id = scheduling.getId();
-        this.technicianUsername = scheduling.getTechnician().getUsername();
-        this.technicianFullName = scheduling.getTechnician().getFullName();
+
         this.farmName = scheduling.getFarmName();
         this.clientName = scheduling.getClientName();
         this.clientEmail = scheduling.getClientEmail();
@@ -50,7 +53,11 @@ public class SchedulingResponse {
         this.priority = scheduling.getPriority().name();
         this.clientRating = scheduling.getClientRating();
         this.clientFeedback = scheduling.getClientFeedback();
-        this.technician = scheduling.getTechnician();
+
+        this.technicianUsername = scheduling.getTechnician().getUsername();
+        this.technicianFullName = scheduling.getTechnician().getFullName();
+        this.technicianEmail = scheduling.getTechnician().getEmail();
+        this.technicianId = scheduling.getTechnician().getId();
 
         this.equipments = scheduling.getEquipments().stream()
                 .map(EquipmentResponse::new)
@@ -173,11 +180,11 @@ public class SchedulingResponse {
         this.priority = priority;
     }
 
-    public Integer getClientRating() {
+    public Double getClientRating() {
         return clientRating;
     }
 
-    public void setClientRating(Integer clientRating) {
+    public void setClientRating(Double clientRating) {
         this.clientRating = clientRating;
     }
 
@@ -213,11 +220,19 @@ public class SchedulingResponse {
         this.locationDetails = locationDetails;
     }
 
-    public User getTechnician() {
-        return technician;
+    public String getTechnicianEmail() {
+        return technicianEmail;
     }
 
-    public void setTechnician(User technician) {
-        this.technician = technician;
+    public void setTechnicianEmail(String technicianEmail) {
+        this.technicianEmail = technicianEmail;
+    }
+
+    public Long getTechnicianId() {
+        return technicianId;
+    }
+
+    public void setTechnicianId(Long technicianId) {
+        this.technicianId = technicianId;
     }
 }

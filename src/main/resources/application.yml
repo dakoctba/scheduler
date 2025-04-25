@@ -42,6 +42,11 @@ spring:
           auth: false
           starttls:
             enable: false
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+
 app:
   jwt:
     secret: 57ffd86ce5c53fccdfc26bd1153e825dcbda4f76d1587692689dd8b1e2b33285

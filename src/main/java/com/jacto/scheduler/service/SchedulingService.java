@@ -10,6 +10,8 @@ import com.jacto.scheduler.repository.EquipmentRepository;
 import com.jacto.scheduler.repository.SchedulingRepository;
 import com.jacto.scheduler.repository.SparePartRepository;
 import com.jacto.scheduler.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class SchedulingService {
+    private static final Logger logger = LoggerFactory.getLogger(SchedulingService.class);
 
     private final SchedulingRepository schedulingRepository;
     private final EquipmentRepository equipmentRepository;
@@ -28,20 +31,23 @@ public class SchedulingService {
     private final UserRepository userRepository;
     private final GeocodingService geocodingService;
     private final NotificationService notificationService;
+    private final RedisSchedulingService redisSchedulingService;
 
     public SchedulingService(
             SchedulingRepository schedulingRepository,
             EquipmentRepository equipmentRepository,
             SparePartRepository sparePartRepository,
             UserRepository userRepository,
+            NotificationService notificationService,
             GeocodingService geocodingService,
-            NotificationService notificationService) {
+            RedisSchedulingService redisSchedulingService) {
         this.schedulingRepository = schedulingRepository;
         this.equipmentRepository = equipmentRepository;
         this.sparePartRepository = sparePartRepository;
         this.userRepository = userRepository;
-        this.geocodingService = geocodingService;
         this.notificationService = notificationService;
+        this.geocodingService = geocodingService;
+        this.redisSchedulingService = redisSchedulingService;
     }
 
     public List<SchedulingResponse> getAllSchedulingsForCurrentUser() {
@@ -51,14 +57,19 @@ public class SchedulingService {
 
         return schedulings.stream()
                 .map(scheduling -> {
+                    // Sempre converter e enriquecer com dados do banco
                     SchedulingResponse response = new SchedulingResponse(scheduling);
                     enrichWithGeocodingData(response);
+
+                    // Atualizar o cache com os dados mais recentes
+                    redisSchedulingService.saveScheduling(response);
+
                     return response;
                 })
                 .collect(Collectors.toList());
     }
 
-    public List<SchedulingResponse> getUpcomingSchedulings() {
+    public List<SchedulingResponse> getUpcomingSchedulingsForCurrentUser() {
         User currentUser = getCurrentUser();
 
         List<Scheduling> schedulings = schedulingRepository.findUpcomingSchedulings(
@@ -66,8 +77,13 @@ public class SchedulingService {
 
         return schedulings.stream()
                 .map(scheduling -> {
+                    // Sempre converter e enriquecer com dados do banco
                     SchedulingResponse response = new SchedulingResponse(scheduling);
                     enrichWithGeocodingData(response);
+
+                    // Atualizar o cache com os dados mais recentes
+                    redisSchedulingService.saveScheduling(response);
+
                     return response;
                 })
                 .collect(Collectors.toList());
@@ -76,6 +92,13 @@ public class SchedulingService {
     public SchedulingResponse getSchedulingById(Long id) {
         User currentUser = getCurrentUser();
 
+        // Tentar obter do cache primeiro
+        SchedulingResponse cachedScheduling = redisSchedulingService.getScheduling(id);
+        if (cachedScheduling != null) {
+            return cachedScheduling;
+        }
+
+        // Se não estiver no cache, buscar no banco de dados
         Scheduling scheduling = schedulingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado com id: " + id));
 
@@ -84,18 +107,33 @@ public class SchedulingService {
             throw new ResourceNotFoundException("Agendamento não encontrado com id: " + id);
         }
 
+        // Converter para resposta e enriquecer com dados de geolocalização
         SchedulingResponse response = new SchedulingResponse(scheduling);
         enrichWithGeocodingData(response);
+
+        // Salvar no cache para futuras consultas
+        redisSchedulingService.saveScheduling(response);
 
         return response;
     }
 
     public SchedulingResponse getSchedulingByIdForKafka(Long id) {
+        // Tentar obter do cache primeiro
+        SchedulingResponse cachedScheduling = redisSchedulingService.getScheduling(id);
+        if (cachedScheduling != null) {
+            return cachedScheduling;
+        }
+
+        // Se não estiver no cache, buscar no banco de dados
         Scheduling scheduling = schedulingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado com id: " + id));
 
+        // Converter para resposta e enriquecer com dados de geolocalização
         SchedulingResponse response = new SchedulingResponse(scheduling);
         enrichWithGeocodingData(response);
+
+        // Salvar no cache para futuras consultas
+        redisSchedulingService.saveScheduling(response);
 
         return response;
     }
@@ -161,12 +199,15 @@ public class SchedulingService {
         // Buscar o agendamento completo com relacionamentos
         scheduling = schedulingRepository.findById(scheduling.getId()).orElseThrow();
 
-        // Enviar notificação assíncrona
-        notificationService.sendSchedulingCreatedNotification(scheduling.getId());
-
         // Retornar resposta com dados de geolocalização
         SchedulingResponse response = new SchedulingResponse(scheduling);
         enrichWithGeocodingData(response);
+
+        // Salvar no cache
+        redisSchedulingService.saveScheduling(response);
+
+        // Enviar notificação assíncrona
+        notificationService.sendSchedulingCreatedNotification(scheduling.getId());
 
         return response;
     }
@@ -275,17 +316,20 @@ public class SchedulingService {
             }
         }
 
-        // Enviar notificação de atualização, se necessário
-        if (request.getStatus() != null) {
-            notificationService.sendSchedulingUpdatedNotification(scheduling.getId());
-        }
-
         // Buscar o agendamento atualizado
         scheduling = schedulingRepository.findById(id).orElseThrow();
 
         // Retornar resposta com dados de geolocalização
         SchedulingResponse response = new SchedulingResponse(scheduling);
         enrichWithGeocodingData(response);
+
+        // Atualizar o cache
+        redisSchedulingService.saveScheduling(response);
+
+        // Enviar notificação de atualização, se necessário
+        if (request.getStatus() != null) {
+            notificationService.sendSchedulingUpdatedNotification(scheduling.getId());
+        }
 
         return response;
     }
@@ -305,8 +349,8 @@ public class SchedulingService {
         // Remover o agendamento (e todos os relacionamentos em cascata)
         schedulingRepository.delete(scheduling);
 
-        // Enviar notificação de exclusão
-        notificationService.sendSchedulingDeletedNotification(scheduling.getId());
+        // Remover do cache
+        redisSchedulingService.deleteScheduling(id);
     }
 
     @Transactional
@@ -363,8 +407,7 @@ public class SchedulingService {
                     response.getLatitude(), response.getLongitude());
             response.setLocationDetails(locationDetails);
         } catch (Exception e) {
-            // Lidar com falhas de geolocalização sem comprometer a resposta principal
-            // Pode-se adicionar um log de erro aqui
+            logger.error("Não foi possível enriquecer o endereço do agendamento com dados de geolocalização");
         }
     }
 }

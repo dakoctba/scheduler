@@ -63,46 +63,4 @@ public class GeocodingService {
 
         return details;
     }
-
-    public GeoLocationDetails getCoordinatesFromAddress(String address) {
-        String url = UriComponentsBuilder.fromHttpUrl(nominatimBaseUrl + "/search")
-                .queryParam("format", "json")
-                .queryParam("q", address)
-                .queryParam("limit", 1)
-                .queryParam("addressdetails", 1)
-                .build()
-                .toUriString();
-
-        Map[] response = restTemplate.getForObject(url, Map[].class);
-
-        if (response == null || response.length == 0) {
-            return null;
-        }
-
-        Map<String, Object> location = response[0];
-        GeoLocationDetails details = new GeoLocationDetails();
-
-        if (location.containsKey("display_name")) {
-            details.setFormattedAddress((String) location.get("display_name"));
-        }
-
-        if (location.containsKey("address")) {
-            Map<String, String> addressDetails = (Map<String, String>) location.get("address");
-
-            if (addressDetails.containsKey("city")) {
-                details.setCity(addressDetails.get("city"));
-            }
-            if (addressDetails.containsKey("state")) {
-                details.setState(addressDetails.get("state"));
-            }
-            if (addressDetails.containsKey("postcode")) {
-                details.setPostalCode(addressDetails.get("postcode"));
-            }
-            if (addressDetails.containsKey("country")) {
-                details.setCountry(addressDetails.get("country"));
-            }
-        }
-
-        return details;
-    }
 }

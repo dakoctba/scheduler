@@ -39,7 +39,7 @@ public class SchedulingNotificationConsumer {
 
         // Envia e-mail para técnico
         String technicianText = this.formatTechnicianNotificationEmail(scheduling);
-        mailService.sendEmail(scheduling.getTechnician().getEmail(), "Novo Agendamento Atribuído - Visita Técnica Jacto", technicianText);
+        mailService.sendEmail(scheduling.getTechnicianEmail(), "Novo Agendamento Atribuído - Visita Técnica Jacto", technicianText);
     }
 
     @KafkaListener(topics = KafkaConfig.SCHEDULING_UPDATED_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
@@ -51,16 +51,6 @@ public class SchedulingNotificationConsumer {
                 scheduling.getId(), scheduling.getStatus());
 
         // Notificar cliente e técnico sobre a atualização
-    }
-
-    @KafkaListener(topics = KafkaConfig.SCHEDULING_DELETED_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
-    @Transactional
-    public void handleSchedulingDeleted(Long schedulingId) {
-        SchedulingResponse scheduling = schedulingService.getSchedulingByIdForKafka(schedulingId);
-
-        logger.info("Recebida notificação de agendamento excluído: ID={}", scheduling.getId());
-
-        // Notificar cliente sobre o cancelamento
     }
 
     @KafkaListener(topics = KafkaConfig.SCHEDULING_REMINDER_TOPIC, groupId = "${spring.kafka.consumer.group-id}")

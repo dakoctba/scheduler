@@ -53,7 +53,7 @@ public class Scheduling {
     private ServicePriority priority = ServicePriority.MEDIUM;
 
     @Column
-    private Integer clientRating;
+    private Double clientRating;
 
     @Column(length = 1000)
     private String clientFeedback;
@@ -168,11 +168,11 @@ public class Scheduling {
         this.priority = priority;
     }
 
-    public Integer getClientRating() {
+    public Double getClientRating() {
         return clientRating;
     }
 
-    public void setClientRating(Integer clientRating) {
+    public void setClientRating(Double clientRating) {
         this.clientRating = clientRating;
     }
 
