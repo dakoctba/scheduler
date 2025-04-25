@@ -14,9 +14,20 @@ public class GeocodingService {
     private final RestTemplate restTemplate;
     private final String nominatimBaseUrl;
 
+    public GeocodingService() {
+        this.restTemplate = new RestTemplate();
+        this.nominatimBaseUrl = "https://nominatim.openstreetmap.org";
+    }
+
     public GeocodingService(
             @Value("${geocoding.nominatim.base-url:https://nominatim.openstreetmap.org}") String nominatimBaseUrl) {
         this.restTemplate = new RestTemplate();
+        this.nominatimBaseUrl = nominatimBaseUrl;
+    }
+
+    // Construtor para testes
+    GeocodingService(String nominatimBaseUrl, RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
         this.nominatimBaseUrl = nominatimBaseUrl;
     }
 
@@ -33,7 +44,7 @@ public class GeocodingService {
         Map<String, Object> response = restTemplate.getForObject(url, Map.class);
 
         if (response == null) {
-            return null;
+            throw new RuntimeException("Resposta vazia do serviço de geocodificação");
         }
 
         GeoLocationDetails details = new GeoLocationDetails();
