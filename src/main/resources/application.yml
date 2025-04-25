@@ -65,6 +65,47 @@ springdoc:
   default-produces-media-type: application/json
   default-consumes-media-type: application/json
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+    info:
+      enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 10ms, 50ms, 100ms, 200ms, 500ms
+    enable:
+      jvm: true
+      process: true
+      system: true
+      http: true
+      logback: true
+      tomcat: true
+      hibernate: true
+      jdbc: true
+      redis: true
+      kafka: true
+      scheduling: true
+
 geocoding:
   nominatim:
     base-url: https://nominatim.openstreetmap.org

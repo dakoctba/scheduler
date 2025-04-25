@@ -1,0 +1,38 @@
+groups:
+  - name: scheduler
+    rules:
+      - alert: HighErrorRate
+        expr: rate(http_server_requests_seconds_count{status=~"5.."}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Alta taxa de erros detectada"
+          description: "Taxa de erros está acima de 10% nos últimos 5 minutos"
+
+      - alert: HighResponseTime
+        expr: rate(http_server_requests_seconds_sum[5m]) / rate(http_server_requests_seconds_count[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Tempo de resposta alto"
+          description: "Tempo médio de resposta está acima de 1 segundo nos últimos 5 minutos"
+
+      - alert: HighMemoryUsage
+        expr: (jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"}) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uso alto de memória"
+          description: "Uso de memória heap está acima de 80%"
+
+      - alert: HighCPUUsage
+        expr: system_cpu_usage > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uso alto de CPU"
+          description: "Uso de CPU está acima de 80%"

@@ -12,6 +12,7 @@ import com.jacto.scheduler.repository.EquipmentRepository;
 import com.jacto.scheduler.repository.SchedulingRepository;
 import com.jacto.scheduler.repository.SparePartRepository;
 import com.jacto.scheduler.repository.UserRepository;
+import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -34,6 +35,7 @@ public class SchedulingService {
     private final GeocodingService geocodingService;
     private final NotificationService notificationService;
     private final RedisSchedulingService redisSchedulingService;
+    private final MetricsService metricsService;
 
     public SchedulingService(
             SchedulingRepository schedulingRepository,
@@ -42,7 +44,8 @@ public class SchedulingService {
             UserRepository userRepository,
             NotificationService notificationService,
             GeocodingService geocodingService,
-            RedisSchedulingService redisSchedulingService) {
+            RedisSchedulingService redisSchedulingService,
+            MetricsService metricsService) {
         this.schedulingRepository = schedulingRepository;
         this.equipmentRepository = equipmentRepository;
         this.sparePartRepository = sparePartRepository;
@@ -50,6 +53,7 @@ public class SchedulingService {
         this.notificationService = notificationService;
         this.geocodingService = geocodingService;
         this.redisSchedulingService = redisSchedulingService;
+        this.metricsService = metricsService;
     }
 
     public List<SchedulingResponse> getAllSchedulingsForCurrentUser() {
@@ -142,198 +146,151 @@ public class SchedulingService {
 
     @Transactional
     public SchedulingResponse createScheduling(SchedulingRequest request) {
-        User currentUser = getCurrentUser();
+        Timer.Sample sample = metricsService.startSchedulingDuration();
+        try {
+            User currentUser = getCurrentUser();
 
-        // Validar se a data do agendamento não é anterior à data atual
-        if (request.getScheduledAt().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("A data de agendamento não pode ser anterior à data atual");
-        }
-
-        // Criar um novo agendamento
-        Scheduling scheduling = new Scheduling();
-        scheduling.setTechnician(currentUser);
-        scheduling.setFarmName(request.getFarmName());
-        scheduling.setClientName(request.getClientName());
-        scheduling.setClientEmail(request.getClientEmail());
-        scheduling.setAddress(request.getAddress());
-        scheduling.setLatitude(request.getLatitude());
-        scheduling.setLongitude(request.getLongitude());
-        scheduling.setScheduledAt(request.getScheduledAt());
-        scheduling.setServiceDescription(request.getServiceDescription());
-
-        // Definir prioridade
-        if (request.getPriority() != null) {
-            try {
-                scheduling.setPriority(ServicePriority.valueOf(request.getPriority().toUpperCase()));
-            } catch (IllegalArgumentException e) {
-                // Usar valor padrão se a prioridade for inválida
-                scheduling.setPriority(ServicePriority.MEDIUM);
+            // Validar se a data do agendamento não é anterior à data atual
+            if (request.getScheduledAt().isBefore(LocalDateTime.now())) {
+                throw new IllegalArgumentException("A data de agendamento não pode ser anterior à data atual");
             }
-        }
 
-        // Salvar o agendamento primeiro para obter o ID
-        scheduling = schedulingRepository.save(scheduling);
+            // Criar um novo agendamento
+            Scheduling scheduling = new Scheduling();
+            scheduling.setTechnician(currentUser);
+            scheduling.setFarmName(request.getFarmName());
+            scheduling.setClientName(request.getClientName());
+            scheduling.setClientEmail(request.getClientEmail());
+            scheduling.setAddress(request.getAddress());
+            scheduling.setLatitude(request.getLatitude());
+            scheduling.setLongitude(request.getLongitude());
+            scheduling.setScheduledAt(request.getScheduledAt());
+            scheduling.setServiceDescription(request.getServiceDescription());
+            scheduling.setStatus(SchedulingStatus.PENDING);
 
-        // Processar equipamentos, se houver
-        if (request.getEquipments() != null && !request.getEquipments().isEmpty()) {
-            for (EquipmentRequest equipmentRequest : request.getEquipments()) {
-                Equipment equipment = new Equipment();
-                equipment.setScheduling(scheduling);
-                equipment.setName(equipmentRequest.getName());
-                equipment.setSerialNumber(equipmentRequest.getSerialNumber());
-                equipment.setDescription(equipmentRequest.getDescription());
-                equipmentRepository.save(equipment);
+            // Definir prioridade
+            if (request.getPriority() != null) {
+                try {
+                    scheduling.setPriority(ServicePriority.valueOf(request.getPriority().toUpperCase()));
+                } catch (IllegalArgumentException e) {
+                    // Usar valor padrão se a prioridade for inválida
+                    scheduling.setPriority(ServicePriority.MEDIUM);
+                }
             }
-        }
 
-        // Processar peças de reposição, se houver
-        if (request.getSpareParts() != null && !request.getSpareParts().isEmpty()) {
-            for (SparePartRequest sparePartRequest : request.getSpareParts()) {
-                SparePart sparePart = new SparePart();
-                sparePart.setScheduling(scheduling);
-                sparePart.setName(sparePartRequest.getName());
-                sparePart.setPartNumber(sparePartRequest.getPartNumber());
-                sparePart.setQuantity(sparePartRequest.getQuantity());
-                sparePartRepository.save(sparePart);
+            // Salvar o agendamento primeiro para obter o ID
+            scheduling = schedulingRepository.save(scheduling);
+
+            // Registrar métricas
+            metricsService.incrementSchedulingTotal();
+            metricsService.incrementSchedulingStatus(scheduling.getStatus());
+
+            // Processar equipamentos, se houver
+            if (request.getEquipments() != null && !request.getEquipments().isEmpty()) {
+                for (EquipmentRequest equipmentRequest : request.getEquipments()) {
+                    Equipment equipment = new Equipment();
+                    equipment.setScheduling(scheduling);
+                    equipment.setName(equipmentRequest.getName());
+                    equipment.setSerialNumber(equipmentRequest.getSerialNumber());
+                    equipment.setDescription(equipmentRequest.getDescription());
+                    equipmentRepository.save(equipment);
+                }
             }
+
+            // Processar peças de reposição, se houver
+            if (request.getSpareParts() != null && !request.getSpareParts().isEmpty()) {
+                for (SparePartRequest sparePartRequest : request.getSpareParts()) {
+                    SparePart sparePart = new SparePart();
+                    sparePart.setScheduling(scheduling);
+                    sparePart.setName(sparePartRequest.getName());
+                    sparePart.setPartNumber(sparePartRequest.getPartNumber());
+                    sparePart.setQuantity(sparePartRequest.getQuantity());
+                    sparePartRepository.save(sparePart);
+                }
+            }
+
+            // Buscar o agendamento completo com relacionamentos
+            scheduling = schedulingRepository.findById(scheduling.getId()).orElseThrow();
+
+            // Retornar resposta com dados de geolocalização
+            SchedulingResponse response = new SchedulingResponse(scheduling);
+            enrichWithGeocodingData(response);
+
+            // Salvar no cache
+            redisSchedulingService.saveScheduling(response);
+
+            // Enviar notificação assíncrona
+            notificationService.sendSchedulingCreatedNotification(scheduling.getId());
+
+            return response;
+        } finally {
+            metricsService.stopSchedulingDuration(sample);
         }
-
-        // Buscar o agendamento completo com relacionamentos
-        scheduling = schedulingRepository.findById(scheduling.getId()).orElseThrow();
-
-        // Retornar resposta com dados de geolocalização
-        SchedulingResponse response = new SchedulingResponse(scheduling);
-        enrichWithGeocodingData(response);
-
-        // Salvar no cache
-        redisSchedulingService.saveScheduling(response);
-
-        // Enviar notificação assíncrona
-        notificationService.sendSchedulingCreatedNotification(scheduling.getId());
-
-        return response;
     }
 
     @Transactional
     public SchedulingResponse updateScheduling(Long id, SchedulingUpdateRequest request) {
-        User currentUser = getCurrentUser();
+        Timer.Sample sample = metricsService.startSchedulingDuration();
+        try {
+            User currentUser = getCurrentUser();
 
-        Scheduling scheduling = schedulingRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado com id: " + id));
+            Scheduling scheduling = schedulingRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado com id: " + id));
 
-        // Verifica se o agendamento pertence ao usuário atual
-        if (!scheduling.getTechnician().getId().equals(currentUser.getId())) {
-            throw new ResourceNotFoundException("Agendamento não encontrado com id: " + id);
-        }
-
-        // Validar se a data do agendamento não é anterior à data atual
-        if (request.getScheduledAt() != null && request.getScheduledAt().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("A data de agendamento não pode ser anterior à data atual");
-        }
-
-        // Atualizar os campos do agendamento
-        if (request.getFarmName() != null) {
-            scheduling.setFarmName(request.getFarmName());
-        }
-
-        if (request.getClientName() != null) {
-            scheduling.setClientName(request.getClientName());
-        }
-
-        if (request.getClientEmail() != null) {
-            scheduling.setClientEmail(request.getClientEmail());
-        }
-
-        if (request.getAddress() != null) {
-            scheduling.setAddress(request.getAddress());
-        }
-
-        if (request.getLatitude() != null && request.getLongitude() != null) {
-            scheduling.setLatitude(request.getLatitude());
-            scheduling.setLongitude(request.getLongitude());
-        }
-
-        if (request.getScheduledAt() != null) {
-            scheduling.setScheduledAt(request.getScheduledAt());
-        }
-
-        if (request.getServiceDescription() != null) {
-            scheduling.setServiceDescription(request.getServiceDescription());
-        }
-
-        if (request.getStatus() != null) {
-            try {
-                SchedulingStatus newStatus = SchedulingStatus.valueOf(request.getStatus().toUpperCase());
-                scheduling.setStatus(newStatus);
-
-                // Se o status for alterado para COMPLETED, atualizar a data de conclusão
-                if (newStatus == SchedulingStatus.COMPLETED) {
-                    scheduling.setCompletedAt(LocalDateTime.now());
-                }
-            } catch (IllegalArgumentException e) {
-                // Ignorar status inválido
+            // Verifica se o agendamento pertence ao usuário atual
+            if (!scheduling.getTechnician().getId().equals(currentUser.getId())) {
+                throw new ResourceNotFoundException("Agendamento não encontrado com id: " + id);
             }
-        }
 
-        if (request.getPriority() != null) {
-            try {
-                scheduling.setPriority(ServicePriority.valueOf(request.getPriority().toUpperCase()));
-            } catch (IllegalArgumentException e) {
-                // Ignorar prioridade inválida
+            // Validar se a data do agendamento não é anterior à data atual
+            if (request.getScheduledAt() != null && request.getScheduledAt().isBefore(LocalDateTime.now())) {
+                throw new IllegalArgumentException("A data de agendamento não pode ser anterior à data atual");
             }
-        }
 
-        // Salvar as alterações do agendamento
-        scheduling = schedulingRepository.save(scheduling);
-
-        // Atualizar equipamentos, se fornecidos
-        if (request.getEquipments() != null) {
-            // Remover equipamentos existentes
-            equipmentRepository.deleteAll(equipmentRepository.findByScheduling(scheduling));
-
-            // Adicionar novos equipamentos
-            for (EquipmentRequest equipmentRequest : request.getEquipments()) {
-                Equipment equipment = new Equipment();
-                equipment.setScheduling(scheduling);
-                equipment.setName(equipmentRequest.getName());
-                equipment.setSerialNumber(equipmentRequest.getSerialNumber());
-                equipment.setDescription(equipmentRequest.getDescription());
-                equipmentRepository.save(equipment);
+            // Atualizar os campos do agendamento
+            if (request.getFarmName() != null) {
+                scheduling.setFarmName(request.getFarmName());
             }
-        }
 
-        // Atualizar peças de reposição, se fornecidas
-        if (request.getSpareParts() != null) {
-            // Remover peças existentes
-            sparePartRepository.deleteAll(sparePartRepository.findByScheduling(scheduling));
-
-            // Adicionar novas peças
-            for (SparePartRequest sparePartRequest : request.getSpareParts()) {
-                SparePart sparePart = new SparePart();
-                sparePart.setScheduling(scheduling);
-                sparePart.setName(sparePartRequest.getName());
-                sparePart.setPartNumber(sparePartRequest.getPartNumber());
-                sparePart.setQuantity(sparePartRequest.getQuantity());
-                sparePartRepository.save(sparePart);
+            if (request.getClientName() != null) {
+                scheduling.setClientName(request.getClientName());
             }
+
+            if (request.getClientEmail() != null) {
+                scheduling.setClientEmail(request.getClientEmail());
+            }
+
+            if (request.getAddress() != null) {
+                scheduling.setAddress(request.getAddress());
+            }
+
+            if (request.getScheduledAt() != null) {
+                scheduling.setScheduledAt(request.getScheduledAt());
+            }
+
+            if (request.getServiceDescription() != null) {
+                scheduling.setServiceDescription(request.getServiceDescription());
+            }
+
+            if (request.getStatus() != null) {
+                scheduling.setStatus(SchedulingStatus.valueOf(request.getStatus().toUpperCase()));
+                metricsService.incrementSchedulingStatus(scheduling.getStatus());
+            }
+
+            // Salvar as alterações
+            scheduling = schedulingRepository.save(scheduling);
+
+            // Retornar resposta com dados de geolocalização
+            SchedulingResponse response = new SchedulingResponse(scheduling);
+            enrichWithGeocodingData(response);
+
+            // Atualizar o cache
+            redisSchedulingService.saveScheduling(response);
+
+            return response;
+        } finally {
+            metricsService.stopSchedulingDuration(sample);
         }
-
-        // Buscar o agendamento atualizado
-        scheduling = schedulingRepository.findById(id).orElseThrow();
-
-        // Retornar resposta com dados de geolocalização
-        SchedulingResponse response = new SchedulingResponse(scheduling);
-        enrichWithGeocodingData(response);
-
-        // Atualizar o cache
-        redisSchedulingService.saveScheduling(response);
-
-        // Enviar notificação de atualização, se necessário
-        if (request.getStatus() != null) {
-            notificationService.sendSchedulingUpdatedNotification(scheduling.getId());
-        }
-
-        return response;
     }
 
     @Transactional
