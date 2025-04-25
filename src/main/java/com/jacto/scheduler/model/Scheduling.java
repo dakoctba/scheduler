@@ -1,5 +1,7 @@
 package com.jacto.scheduler.model;
 
+import com.jacto.scheduler.enumerations.SchedulingStatus;
+import com.jacto.scheduler.enumerations.ServicePriority;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;

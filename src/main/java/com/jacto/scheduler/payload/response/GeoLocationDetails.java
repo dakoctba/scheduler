@@ -13,7 +13,7 @@ public class GeoLocationDetails {
     private String country;
     private String postalCode;
     private String formattedAddress;
-    private double distance; // distância até a cidade mais próxima em km
+    private double distance;
 
     // Construtor padrão para deserialização JSON
     public GeoLocationDetails() {
@@ -104,5 +104,13 @@ public class GeoLocationDetails {
 
     public void setLongitude(Double longitude) {
         this.longitude = longitude;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
     }
 }

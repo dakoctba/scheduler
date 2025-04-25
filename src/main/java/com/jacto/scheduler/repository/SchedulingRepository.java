@@ -1,7 +1,7 @@
 package com.jacto.scheduler.repository;
 
 import com.jacto.scheduler.model.Scheduling;
-import com.jacto.scheduler.model.SchedulingStatus;
+import com.jacto.scheduler.enumerations.SchedulingStatus;
 import com.jacto.scheduler.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,10 +13,6 @@ import java.util.List;
 @Repository
 public interface SchedulingRepository extends JpaRepository<Scheduling, Long> {
     List<Scheduling> findByTechnicianOrderByScheduledAtDesc(User technician);
-
-    List<Scheduling> findByTechnicianAndStatusOrderByScheduledAtDesc(User technician, SchedulingStatus status);
-
-    List<Scheduling> findByScheduledAtBetweenOrderByScheduledAtAsc(LocalDateTime start, LocalDateTime end);
 
     @Query("SELECT s FROM Scheduling s WHERE s.technician = ?1 AND s.scheduledAt > ?2 ORDER BY s.scheduledAt ASC")
     List<Scheduling> findUpcomingSchedulings(User technician, LocalDateTime now);

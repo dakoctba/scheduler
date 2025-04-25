@@ -49,8 +49,6 @@ public class SchedulingNotificationConsumer {
 
         logger.info("Recebida notificação de agendamento atualizado: ID={}, Status={}",
                 scheduling.getId(), scheduling.getStatus());
-
-        // Notificar cliente e técnico sobre a atualização
     }
 
     @KafkaListener(topics = KafkaConfig.SCHEDULING_REMINDER_TOPIC, groupId = "${spring.kafka.consumer.group-id}")
@@ -58,10 +56,8 @@ public class SchedulingNotificationConsumer {
     public void handleSchedulingReminder(Long schedulingId) {
         SchedulingResponse scheduling = schedulingService.getSchedulingByIdForKafka(schedulingId);
 
-        logger.info("Enviando lembrete para agendamento: ID={}, Data={}",
+        logger.info("Enviando lembrete para agendamentos de amanhã: ID={}, Data={}",
                 scheduling.getId(), scheduling.getScheduledAt());
-
-        // Enviar lembrete para o técnico
     }
 
     private String formatConfirmationEmail(SchedulingResponse scheduling) {

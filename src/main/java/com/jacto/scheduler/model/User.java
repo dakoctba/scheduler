@@ -1,6 +1,7 @@
 package com.jacto.scheduler.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.jacto.scheduler.enumerations.Role;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
