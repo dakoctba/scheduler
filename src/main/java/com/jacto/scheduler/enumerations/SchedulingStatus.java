@@ -1,4 +1,4 @@
-package com.jacto.scheduler.model;
+package com.jacto.scheduler.enumerations;
 
 public enum SchedulingStatus {
     PENDING,

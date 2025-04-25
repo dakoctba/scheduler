@@ -1,5 +1,8 @@
 package com.jacto.scheduler.payload.response;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class TechnicianPerformanceResponse {
 
     private Long technicianId;
@@ -7,6 +10,25 @@ public class TechnicianPerformanceResponse {
     private Double averageRating;
     private Long completedVisits;
     private Double averageVisitDuration; // em horas
+
+    // Construtor padrão para deserialização JSON
+    public TechnicianPerformanceResponse() {
+    }
+
+    // Construtor com todos os campos
+    @JsonCreator
+    public TechnicianPerformanceResponse(
+            @JsonProperty("technicianId") Long technicianId,
+            @JsonProperty("technicianName") String technicianName,
+            @JsonProperty("averageRating") Double averageRating,
+            @JsonProperty("completedVisits") Long completedVisits,
+            @JsonProperty("averageVisitDuration") Double averageVisitDuration) {
+        this.technicianId = technicianId;
+        this.technicianName = technicianName;
+        this.averageRating = averageRating;
+        this.completedVisits = completedVisits;
+        this.averageVisitDuration = averageVisitDuration;
+    }
 
     public Long getTechnicianId() {
         return technicianId;

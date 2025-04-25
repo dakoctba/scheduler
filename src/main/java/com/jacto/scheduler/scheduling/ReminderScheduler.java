@@ -1,11 +1,13 @@
 package com.jacto.scheduler.scheduling;
 
 import com.jacto.scheduler.model.Scheduling;
-import com.jacto.scheduler.model.SchedulingStatus;
+import com.jacto.scheduler.enumerations.SchedulingStatus;
 import com.jacto.scheduler.repository.SchedulingRepository;
 import com.jacto.scheduler.service.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -25,17 +27,23 @@ public class ReminderScheduler {
         this.notificationService = notificationService;
     }
 
+    // Descomentar para testar agendamentos próximos
+//    @EventListener(ApplicationReadyEvent.class)
+//    public void triggerOnStartup() {
+//        sendReminders();
+//    }
+
     // Executa a cada hora para verificar agendamentos próximos
     @Scheduled(cron = "0 0 * * * *")
     public void sendReminders() {
         logger.info("Verificando agendamentos para envio de lembretes");
 
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime oneDayAhead = now.plusDays(1);
+        LocalDateTime start = LocalDateTime.now();
+        LocalDateTime end = LocalDateTime.now().plusDays(1).withHour(23).withMinute(59).withSecond(59);
 
         // Buscar agendamentos para o próximo dia que ainda não foram cancelados
         List<Scheduling> upcomingSchedulings = schedulingRepository.findSchedulingsForDateRange(
-                now, oneDayAhead);
+                start, end);
 
         for (Scheduling scheduling : upcomingSchedulings) {
             // Pular agendamentos cancelados

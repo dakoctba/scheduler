@@ -1,6 +1,6 @@
 package com.jacto.scheduler.controller;
 
-import com.jacto.scheduler.model.Role;
+import com.jacto.scheduler.enumerations.Role;
 import com.jacto.scheduler.model.User;
 import com.jacto.scheduler.payload.request.LoginRequest;
 import com.jacto.scheduler.payload.request.SignupRequest;

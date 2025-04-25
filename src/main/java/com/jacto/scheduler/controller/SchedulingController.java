@@ -49,9 +49,9 @@ public class SchedulingController {
             @ApiResponse(responseCode = "403", description = "Não autorizado")
         }
     )
-    public ResponseEntity<List<SchedulingResponse>> getAllSchedulings() {
-        List<SchedulingResponse> schedulings = schedulingService.getAllSchedulingsForCurrentUser();
-        return ResponseEntity.ok(schedulings);
+    public ResponseEntity<List<SchedulingResponse>> getAllSchedulingsForCurrentUser() {
+        List<SchedulingResponse> allSchedulingsForCurrentUser = schedulingService.getAllSchedulingsForCurrentUser();
+        return ResponseEntity.ok(allSchedulingsForCurrentUser);
     }
 
     @GetMapping("/upcoming")
@@ -69,8 +69,8 @@ public class SchedulingController {
             @ApiResponse(responseCode = "403", description = "Não autorizado")
         }
     )
-    public ResponseEntity<List<SchedulingResponse>> getUpcomingSchedulings() {
-        List<SchedulingResponse> schedulings = schedulingService.getUpcomingSchedulings();
+    public ResponseEntity<List<SchedulingResponse>> getUpcomingSchedulingsForCurrentUser() {
+        List<SchedulingResponse> schedulings = schedulingService.getUpcomingSchedulingsForCurrentUser();
         return ResponseEntity.ok(schedulings);
     }
 

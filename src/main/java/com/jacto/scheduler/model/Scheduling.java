@@ -1,5 +1,7 @@
 package com.jacto.scheduler.model;
 
+import com.jacto.scheduler.enumerations.SchedulingStatus;
+import com.jacto.scheduler.enumerations.ServicePriority;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -53,7 +55,7 @@ public class Scheduling {
     private ServicePriority priority = ServicePriority.MEDIUM;
 
     @Column
-    private Integer clientRating;
+    private Double clientRating;
 
     @Column(length = 1000)
     private String clientFeedback;
@@ -168,11 +170,11 @@ public class Scheduling {
         this.priority = priority;
     }
 
-    public Integer getClientRating() {
+    public Double getClientRating() {
         return clientRating;
     }
 
-    public void setClientRating(Integer clientRating) {
+    public void setClientRating(Double clientRating) {
         this.clientRating = clientRating;
     }
 
