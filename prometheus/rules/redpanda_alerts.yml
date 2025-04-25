@@ -1,0 +1,38 @@
+groups:
+  - name: redpanda
+    rules:
+      - alert: RedpandaHighCPUUsage
+        expr: rate(vectorized_reactor_cpu_busy_ms[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uso alto de CPU no Redpanda"
+          description: "Uso de CPU está acima de 80% nos últimos 5 minutos"
+
+      - alert: RedpandaHighMemoryUsage
+        expr: vectorized_memory_allocated_memory / vectorized_memory_total_memory > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uso alto de memória no Redpanda"
+          description: "Uso de memória está acima de 80%"
+
+      - alert: RedpandaHighDiskUsage
+        expr: vectorized_storage_log_partition_size / vectorized_storage_log_partition_size > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Uso alto de disco no Redpanda"
+          description: "Uso de disco está acima de 80%"
+
+      - alert: RedpandaHighLatency
+        expr: rate(vectorized_kafka_handler_latency_microseconds_sum[5m]) / rate(vectorized_kafka_handler_latency_microseconds_count[5m]) > 100000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Latência alta no Redpanda"
+          description: "Latência média está acima de 100ms nos últimos 5 minutos"

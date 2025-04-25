@@ -73,6 +73,8 @@ public class WebSecurityConfig {
                     .requestMatchers("/swagger-ui.html").permitAll()
                     .requestMatchers("/swagger-resources/**").permitAll()
                     .requestMatchers("/webjars/**").permitAll()
+                    .requestMatchers("/actuator/**").permitAll()
+                    .requestMatchers("/actuator/prometheus").permitAll()
                     .anyRequest().authenticated()
             );
 
