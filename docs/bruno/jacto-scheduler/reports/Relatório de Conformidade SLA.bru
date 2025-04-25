@@ -1,0 +1,20 @@
+meta {
+  name: Relatório de Conformidade SLA
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{host}}/api/reports/sla/compliance?startDate=2025-01-01T00:00:00&endDate=2025-12-31T23:59:59
+  body: none
+  auth: none
+}
+
+params:query {
+  startDate: 2025-01-01T00:00:00
+  endDate: 2025-12-31T23:59:59
+}
+
+headers {
+  Authorization: Bearer {{access_token}}
+}

@@ -5,6 +5,7 @@ import com.jacto.scheduler.enumerations.SchedulingStatus;
 import com.jacto.scheduler.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -29,4 +30,19 @@ public interface SchedulingRepository extends JpaRepository<Scheduling, Long> {
     @Query("SELECT AVG(TIMESTAMPDIFF(HOUR, s.scheduledAt, s.completedAt)) FROM Scheduling s " +
            "WHERE s.technician = ?1 AND s.status = 'COMPLETED' AND s.completedAt IS NOT NULL")
     Double findAverageCompletionTimeForTechnician(User technician);
+
+    @Query("SELECT s FROM Scheduling s WHERE s.scheduledAt BETWEEN :startDate AND :endDate")
+    List<Scheduling> findByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT s FROM Scheduling s WHERE s.technician.id = :technicianId AND s.scheduledAt BETWEEN :startDate AND :endDate")
+    List<Scheduling> findByTechnicianAndDateRange(
+            @Param("technicianId") Long technicianId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT s FROM Scheduling s WHERE s.clientName = :clientName AND s.scheduledAt BETWEEN :startDate AND :endDate")
+    List<Scheduling> findByClientAndDateRange(
+            @Param("clientName") String clientName,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 }
