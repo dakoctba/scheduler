@@ -18,14 +18,13 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 2,
   "links": [],
   "liveNow": false,
   "panels": [
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "PBFA97CFB590B2093"
       },
       "fieldConfig": {
         "defaults": {
@@ -89,7 +88,10 @@
       "id": 1,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -105,8 +107,10 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (topic) (redpanda_kafka_topic_partition_log_size_bytes)",
+          "editorMode": "code",
+          "expr": "sum by (topic) (vectorized_cluster_partition_bytes_produced_total)",
           "legendFormat": "{{topic}}",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -116,7 +120,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "PBFA97CFB590B2093"
       },
       "fieldConfig": {
         "defaults": {
@@ -180,7 +184,10 @@
       "id": 2,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -196,8 +203,10 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (topic) (rate(redpanda_kafka_topic_partition_records_produced_total[5m]))",
+          "editorMode": "code",
+          "expr": "sum by (topic) (rate(vectorized_cluster_partition_records_produced[5m]))",
           "legendFormat": "{{topic}}",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -205,10 +214,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
+      "datasource": {},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -271,7 +277,10 @@
       "id": 3,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -287,8 +296,10 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (topic) (rate(redpanda_kafka_topic_partition_records_consumed_total[5m]))",
+          "editorMode": "code",
+          "expr": "sum by (topic) (rate(vectorized_cluster_partition_records_fetched[5m]))",
           "legendFormat": "{{topic}}",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -296,10 +307,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
+      "datasource": {},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -362,7 +370,10 @@
       "id": 4,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -378,8 +389,10 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "rate(redpanda_kafka_request_latency_seconds_sum[5m]) / rate(redpanda_kafka_request_latency_seconds_count[5m])",
+          "editorMode": "code",
+          "expr": "rate(vectorized_kafka_handler_latency_microseconds_sum[5m]) / rate(vectorized_kafka_handler_latency_microseconds_count[5m])",
           "legendFormat": "Latência Média",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -387,10 +400,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
+      "datasource": {},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -453,7 +463,10 @@
       "id": 5,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -469,8 +482,10 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "redpanda_memory_used_bytes / redpanda_memory_total_bytes * 100",
+          "editorMode": "code",
+          "expr": "vectorized_memory_allocated_memory / vectorized_memory_total_memory * 100",
           "legendFormat": "Uso de Memória",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -478,10 +493,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
+      "datasource": {},
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -544,7 +556,10 @@
       "id": 6,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": [
+            "mean",
+            "max"
+          ],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -560,8 +575,10 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "rate(redpanda_cpu_seconds_total[5m]) * 100",
+          "editorMode": "code",
+          "expr": "rate(vectorized_reactor_cpu_busy_ms[5m]) * 100",
           "legendFormat": "Uso de CPU",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -572,7 +589,10 @@
   "refresh": "5s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["redpanda", "kafka"],
+  "tags": [
+    "redpanda",
+    "kafka"
+  ],
   "templating": {
     "list": []
   },
@@ -584,6 +604,6 @@
   "timezone": "",
   "title": "Redpanda Dashboard",
   "uid": "redpanda",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

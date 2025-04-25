@@ -193,7 +193,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "rate(redpanda_kafka_request_latency_seconds_sum[5m]) / rate(redpanda_kafka_request_latency_seconds_count[5m])",
+          "expr": "rate(vectorized_kafka_handler_latency_microseconds_sum[5m]) / rate(vectorized_kafka_handler_latency_microseconds_count[5m])",
           "refId": "A"
         }
       ],
