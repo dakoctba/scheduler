@@ -27,10 +27,11 @@ public class ReminderScheduler {
         this.notificationService = notificationService;
     }
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void triggerOnStartup() {
-        sendReminders();
-    }
+    // Descomentar para testar agendamentos próximos
+//    @EventListener(ApplicationReadyEvent.class)
+//    public void triggerOnStartup() {
+//        sendReminders();
+//    }
 
     // Executa a cada hora para verificar agendamentos próximos
     @Scheduled(cron = "0 0 * * * *")
